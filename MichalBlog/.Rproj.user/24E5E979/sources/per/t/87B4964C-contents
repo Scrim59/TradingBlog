@@ -1,0 +1,297 @@
+---
+title: "Model SUR i CAPM"
+description: |
+  A short description of the post.
+author:
+  - name: Micahal Lipa
+    
+date: 12-31-2018
+output:
+  radix::radix_article:
+    self_contained: false
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) 
+
+```
+
+##1.1 Teoria
+
+  Podstawowym zadaniem regresji liniowej jest opisanie zachowania procesu na podstawie danych obserwacji. Kiedy za?o?eniem jest opis g??bszej zale?no?ci istnieje mo?liwo?? u?ycia wi?kszej ilo?ci r?wna? by wyja?ni? to zjawisko. Do tego celu mo?e zosta? u?yty model **SUR** (*Seemingly Unrelated Regression*).
+
+###Model SUR  
+
+  Za?o?eniem modeli SUR jest przedstawienie zjawiska za pomoc? osobnych modeli w kt?rym ka?dy ma jednakow? zmienn? zale?n? oraz r??ne zmienne obja?niaj?ce. Model mo?e by? estymowany r?wnanie po r?wnaniu za pomoc? KMNK je?eli b??dy z poszczeg?lnych r?wna? nie s? skorelowane oraz ka?de r?wnanie posiada ten sam regresor. 
+
+Pojedynczy model SUR ma posta?: 
+
+$$ y_{i} = X_{i}\beta_{i}+\varepsilon_{i}$$  
+
+gdzie $y_{i}$ jest wektorem o wymiarach $(N\times 1)$  $X_{i}$ jest macierz? $(N\times K)$, $\beta_{i}$ jest wektorem element?w $(K\times 1)$. Co mo?na zapisa? nast?puj?co: 
+
+
+\begin{equation}
+\begin{pmatrix} 
+y_{1}\\ 
+y_{2}\\ 
+\vdots\\ 
+y_{m} 
+ \end{pmatrix} =
+ \begin{pmatrix}
+  X_{1} & 0 & \cdots & 0 \\
+  0 & X_{2} & \cdots & 0 \\
+  \vdots  & \vdots  & \ddots & \vdots\\
+  0 & 0 & \cdots & X_{m} 
+ \end{pmatrix} 
+ \begin{pmatrix} 
+\beta_{1}\\ 
+\beta_{2}\\ 
+\vdots\\ 
+\beta_{M} 
+ \end{pmatrix} + 
+ \begin{pmatrix} 
+\varepsilon_{1}\\ 
+\varepsilon_{2}\\ 
+\vdots\\ 
+\varepsilon_{m} 
+ \end{pmatrix}
+\end{equation}
+
+Za?o?enia modelu: 
+
+* $E(\varepsilon| X_{1},...,X_{m})=0$ - nielosowo??
+
+* $E(\varepsilon\varepsilon^T| X_{1},...,X_{m})=\Omega$ 
+
+* $E(\varepsilon_{i,j}\varepsilon_{j,s}| X_{1},...,X_{m})=\begin{cases}
+    \sigma_{i,j} \text{ gdy } t = s\\
+    0  \text{ gdy } t \neq s
+  \end{cases}$ - skorelowanie dzisiejszych b??d?w ale brak korelacji dzisiejszych z jutrzejszymi.
+
+###CAPM 
+
+Model wyceny aktyw?w kapita?owych **CAPM** (*Capital Asset Pricing Model*) okre?la, ile na rynku b?d?cym w r?wnowadze powinna wynosi? stopa zwrotu akcji. A zatem model ten mo?na r?wnie? nazwa? modelem r?wnowagi rynku kapita?owego, kt?ry ma nast?puj?c? posta?: 
+
+$$R(E_{r}) = R_{F}+R_{M}(E)-R_{F}\beta_{j}$$
+
+Podstaw? teoretyczn? jest za?o?enie, ?e ryzyko systematyczne danego waloru wyja?nia nadwy?ka stopy zwrotu portfela rynkowego ponad stop? zwrotu woln? od ryzyka.
+W przypadku z u?yciem modeli SUR b?dziemy badali to, ?e ryzyko gie?dowe jest zwi?zane tylko i wy??cznie z ryzykiem portfela kapita?owego: 
+
+$$(R_{it}-r) = a_{i} + \beta_{i}(R_{Mt}-r)+\varepsilon_{t}$$ 
+gdzie $r$ to nadwy?kowa stopa zwrotu, wi?ksza od stopy wolnej od ryzyka. 
+
+###Test GRS  
+
+W celu weryfikacji efektywno?ci portfeli testowana jest hipoteza:
+
+$$H_{0}: \alpha_{i} = 0  \quad  \forall_{i}=1,...,N$$  
+Do testowania tej restrykcji wykorzystano statystyk?: 
+
+$$ GRS = \left(\frac{T}{N}\right)\left(\frac{T-N-K}{T-K-1}\right)\left(\frac{\alpha^T\hat\Sigma^{-1}\alpha}{1+\mu^T\hat\Omega^{-1}\mu}\right) \sim F(N, T-N-K)$$ 
+
+gdzie: 
+
+* $T$ - liczba obserwacji, 
+
+* $N$ - liczba r?wna? w modelu SUR, 
+
+* $K$ - liczba regresor?w (dla CAPM $K$= 1), 
+
+* $\alpha$ - wektor $\alpha$ z wyestymowanych modeli, 
+
+* $\hat\Sigma$ - zgodny estymator macierzy kowariancji reszt modeli, 
+
+* $\hat\Omega$ - ocena macierzy wariancji i kowariancji analizowanych czynnik?w, 
+
+* $\mu$ - estymator wektora warto?ci oczekiwanych st?p zrotu z portfela g??wnego.
+
+
+##1.2 Obliczenia  
+
+###Dane
+
+```{r echo=FALSE, cache=FALSE, warning=FALSE,message=FALSE}
+#Wczytanie bibliotek  
+library(knitr)  
+library(ggplot2) 
+library(reshape2)
+library(kableExtra)
+library(huxtable)
+library(jtools)
+library(purrr)
+library(readr) 
+library(dplyr) 
+library(purrr)
+library(PerformanceAnalytics) 
+
+#Wczytanie danych dla indeksu wig i indeks?w branzowych  ryzyko dla ka?dego portfela jest zwiazane tylko z wigiem 
+
+#Wektor ?cie?ki do pliku 
+setwd("D:/er")
+pliki <- list.files(pattern = "*.csv") 
+dane <- pliki %>% map(~read.csv(.))%>%map("Zamkniecie")
+
+#Przekszta?cenie listy w data frame i operacje "kosmetyczne"
+df <- as.data.frame(dane)  
+colnames(df) <- c("WIG", "WIG-BANKI", "WIG-BUDOW", "WIG-CHEMIA", "WIG-IT", "WIG-NRCHOM", "WIG-PALIWO","WIG-SPO?YW")
+```
+
+Dane u?yte w modelu dotycz? indeksu gie?dowego WIG oraz siedmiu indeks?w bran?owych: bankowego, budowlanego, chemicznego, informatycznego, nieruchomo?ci, paliwowego oraz spo?ywczego. 
+
+```{r echo = FALSE, results='asis'}
+kable(head(df))%>% 
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+W zbiorze danych obecne s? 2433 obserwacje dziennych cen zamkni?cia obejmuj?cych okres od 02-03-2009 do 16-11-2018. 
+
+Do modelowania u?yte zostan? logarytmiczne stopy zwrotu liczone wzorem: 
+
+$$ r_{l} = ln(\frac{K_{t}}{K_{t-1}}) $$ 
+gdzie:  
+
+$r_{t} \text {- logarytmiczna stopa zwtotu}$
+
+$K_{t} \text {- kurs zamkni?cia akcji.}$ 
+```{r  echo=FALSE, cache=FALSE, warning=FALSE,message=FALSE}
+df_returns <-as.data.frame(sapply(df,function(x){ret <- diff(log(x), lag=1)-((5/360)/100)})) 
+```
+
+Pomniejszone zostan? o 5% stop? woln? od ryzyka. 
+
+```{r echo=FALSE, results='asis'}
+kable(head(df_returns))%>% 
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+ 
+ 
+ 
+Tak przygotowanie dane wykorzystane zostan? do budowy modeli.
+
+##Model 
+
+```{r echo=FALSE, cache=FALSE, warning=FALSE,message=FALSE}
+mnk <- df_returns %>% 
+            select(-WIG)%>%   
+            map(~lm(. ~WIG, data = df_returns)) 
+
+```
+
+Poszczeg?lne modele z podzia?em ze wzgl?du na indeks bran?owy prezentuj? si? nast?puj?co: 
+
+```{r result='asis', echo = FALSE}
+kable(summary(mnk[[1]])$coef)%>% 
+  kable_styling(bootstrap_options = "striped", full_width = F,position = "float_left")%>% 
+   add_header_above(c(" ", "WIG-BANKI" = 3, " ")) 
+kable(summary(mnk[[2]])$coef)%>% 
+  kable_styling(bootstrap_options = "striped", full_width = F,position = "right")%>% 
+   add_header_above(c( " ","WIG-BUDOWA" = 3, " "))
+kable(summary(mnk[[3]])$coef)%>% 
+  kable_styling(bootstrap_options = "striped", full_width = F,position = "float_left")%>% 
+   add_header_above(c( " ","WIG-CHEMIA" = 3, " "))  
+kable(summary(mnk[[4]])$coef)%>% 
+  kable_styling(bootstrap_options = "striped", full_width = F,position = "right")%>% 
+   add_header_above(c( " ","WIG-IT" = 3, " ")) 
+kable(summary(mnk[[5]])$coef)%>% 
+  kable_styling(bootstrap_options = "striped", full_width = F,position = "float_left")%>% 
+   add_header_above(c( " ","WIG-NRCHOM" = 3, " ")) 
+kable(summary(mnk[[6]])$coef)%>% 
+  kable_styling(bootstrap_options = "striped", full_width = F,position = "right")%>% 
+   add_header_above(c( " ","WIG-PALIWO" = 3, " ")) 
+kable(summary(mnk[[7]])$coef)%>% 
+  kable_styling(bootstrap_options = "striped", full_width = F,position = "center")%>% 
+   add_header_above(c( " ","WIG-SPO?YW" = 3, " ")) 
+
+```
+
+Wykresy zale?no?ci liniowych poszczeg?lnych portfeli: 
+
+```{r echo=FALSE} 
+df_melt <- melt(df_returns, id = "WIG")
+
+
+p<- ggplot(data = df_melt, aes(x = WIG, y = value)) +
+  geom_point(shape = 1)+facet_wrap(~variable)+geom_smooth(method = "lm")+theme_bw()+ylab("")+xlab("")
+```
+
+```{r fig.align='center', echo=FALSE, out.height= '180%',out.width= '180%' }
+p
+```
+
+
+### Testowanie statystyk? GRS 
+
+Na podstawie wyestymowanych modeli przygotowano odpowiednie wsp??czynniki do testu GRS.
+
+
+Wektor $\alpha$: 
+```{r  echo=FALSE, cache=FALSE, warning=FALSE,message=FALSE}
+#Warto?ci alfa z modelu
+alfa <- mnk %>% 
+          map("coefficients")%>% 
+          sapply(function(x){x<- x[1]}) 
+alfa_df <- as.data.frame(alfa)
+colnames(alfa_df)<-("a") 
+rownames(alfa_df) <-c( "WIG-BANKI", "WIG-BUDOW", "WIG-CHEMIA", "WIG-IT", "WIG-NRCHOM", "WIG-PALIWO","WIG-SPO?YW")
+#warto?ci reszt z modelu
+reszty <- mnk %>% 
+            map("residuals")%>% 
+            sapply(function(x){x<- x[1:nrow(df_returns)]})
+```
+
+```{r results='asis',echo=FALSE}
+kable(as.data.frame(alfa_df))%>% 
+  kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+
+```{r echo = FALSE}
+df_returns_B <- as.data.frame(df_returns[,-1])
+df_returns_WIG <- as.data.frame(df_returns[,1])  
+T <- nrow(df_returns)                                          #liczba obserwacji
+N <- length(mnk)                                               #liczba modeli  
+K <- 1                                                         #dla CAPM = 1
+WIG_mean <- colMeans(df_returns_B)                                #?rednia zwrot?w z indeksu WIG
+sigma <- cov(reszty)*(T/(T-K-1))               #Macierz sigma kowariancji reszt modelu dla ka?dego indeksu bran?owego
+omega <- cov(df_returns_B)*(T/(T-1))               #Macierz omega kowariancji zwrot?w dla portfela g??wnego
+
+
+w1 <- T/N 
+w2 <- (T - N - 1)/(T - K - 1)
+w3<- t(alfa)%*% solve(sigma)%*%alfa
+w4<- 1 + t(WIG_mean)%*% solve(omega)%*%WIG_mean
+GRS_stat <- w1*w2*(w3/w4) 
+
+p.value <- pf(GRS_stat, df1 = N, df2 = T - N - K, lower.tail = FALSE)
+F_stat <- qf(.95,N,T-N-K) 
+
+GRS_df <- data.frame(GRS_stat,F_stat,p.value)
+```
+
+Macierz $\Omega$: 
+
+```{r echo=FALSE, results='asis'} 
+kable(as.data.frame(omega))%>% 
+    kable_styling(bootstrap_options = "striped", full_width = F) 
+```  
+
+
+*******************
+Macierz $\Sigma$:
+
+```{r echo=FALSE, results='asis'}
+kable(as.data.frame(sigma))%>% 
+    kable_styling(bootstrap_options = "striped", full_width = F)
+
+```
+
+Przy u?yciu statystyki GRS opisanej we wcze?niejszym rozdziale otrzymano nast?puj?ce wyniki: 
+
+```{r echo=FALSE,results='asis'}
+kable(GRS_df)%>% 
+    kable_styling(bootstrap_options = "striped", full_width = F)
+```
+
+Dla obliczonych warto?ci nie ma podstaw by odrzuci? $H_{0}:$ model ten generuje efektywne portfele, mimo ?e warto?? p-value przekroczy?a poziom $0,05$ w niewielkim stopniu. Na rynku spe?niony jest model wyceny **CAPM** i mo?na z jego pomoc? wycenia? poszczeg?lne akcje z indeks?w bran?owych znaj?c stopy zwrotu indeksu g??wnego.
+

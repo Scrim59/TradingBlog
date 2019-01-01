@@ -1,0 +1,47 @@
+[
+  {
+    "path": "posts/2018-12-31-the-sharpe-ratio/",
+    "title": "The Sharpe Ratio",
+    "description": "A short description of the post.",
+    "author": [
+      {
+        "name": "Nora Jones",
+        "url": "https://example.com/norajones"
+      }
+    ],
+    "date": "2018-12-31",
+    "categories": [],
+    "preview": {},
+    "last_modified": "2018-12-31T16:24:33+01:00"
+  },
+  {
+    "path": "posts/2018-12-31-model-sur-i-capm/",
+    "title": "Model SUR i CAPM",
+    "description": "A short description of the post.",
+    "author": [
+      {
+        "name": "Micahal Lipa",
+        "url": {}
+      }
+    ],
+    "date": "2018-12-31",
+    "categories": [],
+    "preview": "posts/2018-12-31-model-sur-i-capm/model-sur-i-capm_files/figure-html5/unnamed-chunk-8-1.png",
+    "last_modified": "2018-12-31T16:29:27+01:00"
+  },
+  {
+    "path": "posts/welcome/",
+    "title": "Welcome to StatHouse",
+    "description": "Welcome to our new blog, StatHouse. We hope you enjoy \nreading what we have to say!",
+    "author": [
+      {
+        "name": "Nora Jones",
+        "url": "https://example.com/norajones"
+      }
+    ],
+    "date": "2018-12-31",
+    "categories": [],
+    "preview": {},
+    "last_modified": "2018-12-31T16:31:30+01:00"
+  }
+]

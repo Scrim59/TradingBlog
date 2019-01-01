@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1546270109881.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1027405753",
+    "id" : "87B4964C",
+    "lastKnownWriteTime" : 1546270157,
+    "last_content_update" : 1546270157257,
+    "path" : "D:/Blog/MichalBlog/_posts/2018-12-31-model-sur-i-capm/model-sur-i-capm.Rmd",
+    "project_path" : "_posts/2018-12-31-model-sur-i-capm/model-sur-i-capm.Rmd",
+    "properties" : {
+        "cursorPosition" : "295,328",
+        "scrollLine" : "273"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}
